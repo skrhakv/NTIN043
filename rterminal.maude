@@ -1,21 +1,35 @@
 fmod TERMINAL is
-    sorts Card Terminal State Price TerminalSession Pin Balance .
-    
+    sorts Card Terminal State Price TerminalSession Pin Balance ChipCard ContactlessCard .
+    subsorts ChipCard ContactlessCard < Card .
+
     protecting RAT . 
     op pin : Rat -> Pin .
     op balance : Rat -> Balance .
-    op card : Pin Balance -> Card .
+    op chipCard : Pin Balance -> ChipCard .
+    op contactlessCard : Balance -> ContactlessCard .
 
     op terminal : Card TerminalSession State -> Terminal .
     op terminalSession : Card Price -> TerminalSession .
     
+    *** vezmu terminal a neco a udelam z toho funkci treba: op updateAccount : Card Terminal -> Terminal 
 
     var P1 P2 : Rat .
     var B : Balance .
+    var P : Pin .
 
-    *** rew in TERMINAL : validateCard ( card ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 12344 ) ) 
+    *** rew in TERMINAL : validateCard ( chipCard ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 12344 ) ) 
     op validateCard : Card Pin -> Bool .
-    eq validateCard ( card ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
+    eq validateCard ( chipCard ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
+    eq validateCard ( contactlessCard ( B ), pin ( P1 ) ) = true . *** substitute P1 with zero?
+
+
+    op getBalance : Card -> Rat .
+    eq getBalance (contactlessCard ( balance ( P1 ) ) ) = P1 .
+    eq getBalance (chipCard ( P , balance ( P1 ) ) ) = P1 .
+
+    op checkCardBalance : Card Rat -> Bool . 
+    
+
 
 
 
