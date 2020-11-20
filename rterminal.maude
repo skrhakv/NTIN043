@@ -1,8 +1,15 @@
 fmod TERMINAL is
-    sorts Card Terminal State Price TerminalSession Pin Balance ChipCard ContactlessCard .
+
+    *** --- DECLARATION OF NEW TYPES --- ***
+    sorts Card Terminal State Price Pin Balance ChipCard ContactlessCard .
     subsorts ChipCard ContactlessCard < Card .
 
+    *** --- LOAD NUMBERS --- ***
     protecting RAT . 
+
+
+    *** --- DEFINE PIN, BALANCE, CARDS, CONSTANTS, VARS --- ***
+
     op pin : Rat -> Pin .
     op balance : Rat -> Balance .
     op chipCard : Pin Balance -> ChipCard .
@@ -13,60 +20,77 @@ fmod TERMINAL is
     op idle : -> State .
     op waiting : -> State .
     op accept : -> State .
+    op pinReject : -> State .
+    op lowBalanceReject : -> State .
     op reject : -> State .
 
-    op payByContactlessCard : Card Terminal -> Terminal .
-    eq 
-    op payChipCard : Card Terminal Pin -> Terminal .
-
-    *** op terminalSession : Card Price -> TerminalSession .
-    
-    *** vezmu terminal a neco a udelam z toho funkci treba: op updateAccount : Card Terminal -> Terminal 
-
-
-
     var BB : Bool .
-
-    op abc : Bool -> Rat .
-    ceq abc ( BB ) = 1 if BB .
-    ceq abc ( BB ) = 2 if BB =/= true .
-
     var P1 P2 : Rat .
     var B : Balance .
     var P : Pin .
     var C1 : Card .
+    var T : Terminal .
+    var S : State .
 
+    *** rew in TERMINAL : payByContactlessCard ( contactlessCard ( balance ( 3000 ) ), terminal ( idle ), 3001 ) .
+
+
+    *** --- IMPLEMENTATION OF TERMINAL FUNCTIONS --- ***
+
+
+    op payByContactlessCard : ContactlessCard Terminal Rat -> Terminal .
+    ceq payByContactlessCard (C1 , terminal ( S ), P1 ) = terminal (reject) if S =/= idle .
+    ceq payByContactlessCard (C1 , terminal ( S ), P1 ) = terminalValidation ( validateCard ( C1, pin (0) ), terminal (waiting), C1, P1 ) if S == idle .
+
+
+    op payChipCard : ChipCard Terminal Rat Rat -> Terminal .
+    ceq payChipCard (C1 , terminal ( S ), P1, P2 ) = terminal (reject) if S =/= idle .
+    ceq payChipCard (C1 , terminal ( S ), P1, P2 ) = terminalValidation ( validateCard ( C1, readPin(P2) ), terminal (waiting), C1, P1 ) if S == idle .
+
+
+    op terminalValidation : Bool Terminal Card Rat -> Terminal .
+    ceq terminalValidation ( BB, T, C1, P1 ) = terminal (pinReject) if BB =/= true .
+    ceq terminalValidation ( BB, T, C1, P1 ) = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting), C1, P1 ) if BB == true .
+
+
+
+    op terminalBalanceCheck : Bool Terminal Card Rat -> Terminal .
+    ceq terminalBalanceCheck ( BB, T , C1, P1 ) = terminal (lowBalanceReject) if BB =/= true .
+    ceq terminalBalanceCheck ( BB, T, C1, P1 ) = terminalBalanceUpdate(T, updateCardBalance( C1, P1)) if BB == true .
+
+    
+    op terminalBalanceUpdate : Terminal Card -> Terminal .
+    eq terminalBalanceUpdate (T, C1) = terminal ( accept ) .
+    
+
+
+
+    *** --- IMPLEMENTATION OF HELPER FUNCTIONS (Pin operations, Card operations) --- ***
 
     op readPin : Rat -> Pin .
     eq readPin ( P1 ) = pin ( P1 ) .
 
-    *** rew in TERMINAL : validateCard ( chipCard ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 1344 ) ) 
+
     op validateCard : Card Pin -> Bool .
     eq validateCard ( chipCard ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
-    eq validateCard ( contactlessCard ( B ), pin ( P1 ) ) = true . *** substitute P1 with zero?
+    eq validateCard ( contactlessCard ( B ), pin ( P1 ) ) = true .
 
 
     op getBalance : Card -> Rat .
     eq getBalance (contactlessCard ( balance ( P1 ) ) ) = P1 .
     eq getBalance (chipCard ( P , balance ( P1 ) ) ) = P1 .
 
+
     op subtractAmount : Card Rat -> Card .
     eq subtractAmount (contactlessCard ( balance ( P1 ) ) , P2 ) = contactlessCard ( balance ( P1 - P2 ) )  .
     eq subtractAmount (chipCard ( P , balance (P1) ) , P2 ) = chipCard ( P , balance ( P1 - P2 ) )  .
 
-    *** checkCardBalance ( chipCard ( pin ( 1234 ) , balance ( 1000 ) ), 100 ) .
+
     op checkCardBalance : Card Rat -> Bool . 
-    eq checkCardBalance (C1, P1) = getBalance( C1 ) > P1 . 
+    eq checkCardBalance (C1, P1) = getBalance( C1 ) >= P1 . 
+
 
     op updateCardBalance : Card Rat -> Card . 
     eq updateCardBalance (C1 , P1 ) = subtractAmount (C1 , P1) .
-
-
-    
-    
-
-
-
-
 
 endfm
