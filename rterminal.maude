@@ -1,0 +1,22 @@
+fmod TERMINAL is
+    sorts Card Terminal State Price TerminalSession Pin Balance .
+    
+    protecting RAT . 
+    op pin : Rat -> Pin .
+    op balance : Rat -> Balance .
+    op card : Pin Balance -> Card .
+
+    op terminal : Card TerminalSession State -> Terminal .
+    op terminalSession : Card Price -> TerminalSession .
+    
+
+    var P1 P2 : Rat .
+    var B : Balance .
+
+    op validateCard : Card Pin -> Bool .
+    eq validateCard ( card ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
+
+
+
+
+endfm
