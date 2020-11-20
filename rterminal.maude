@@ -1,7 +1,7 @@
 fmod TERMINAL is
 
     *** --- DECLARATION OF NEW TYPES --- ***
-    sorts Card Terminal State Price Pin Balance ChipCard ContactlessCard .
+    sorts Card Terminal State Price Pin Balance ChipCard ContactlessCard Account .
     subsorts ChipCard ContactlessCard < Card .
 
     *** --- LOAD NUMBERS --- ***
