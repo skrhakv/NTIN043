@@ -16,6 +16,7 @@ fmod TERMINAL is
     var P1 P2 : Rat .
     var B : Balance .
     var P : Pin .
+    var C1 : Card .
 
     *** rew in TERMINAL : validateCard ( chipCard ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 12344 ) ) 
     op validateCard : Card Pin -> Bool .
@@ -27,7 +28,10 @@ fmod TERMINAL is
     eq getBalance (contactlessCard ( balance ( P1 ) ) ) = P1 .
     eq getBalance (chipCard ( P , balance ( P1 ) ) ) = P1 .
 
+
+    *** checkCardBalance ( chipCard ( pin ( 1234 ) , balance ( 1000 ) ), 100 ) .
     op checkCardBalance : Card Rat -> Bool . 
+    eq checkCardBalance (C1, P1) = getBalance( C1 ) > P1 . 
     
 
 
