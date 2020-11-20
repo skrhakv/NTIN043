@@ -13,6 +13,7 @@ fmod TERMINAL is
     var P1 P2 : Rat .
     var B : Balance .
 
+    *** rew in TERMINAL : validateCard ( card ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 12344 ) ) 
     op validateCard : Card Pin -> Bool .
     eq validateCard ( card ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
 
