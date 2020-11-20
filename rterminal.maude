@@ -1,11 +1,15 @@
 fmod TERMINAL is
 
     *** --- DECLARATION OF NEW TYPES --- ***
-    sorts Card Terminal State Price Pin Balance ChipCard ContactlessCard Account .
+    sorts Card Terminal State Pin Balance ChipCard ContactlessCard Account Name Date .
     subsorts ChipCard ContactlessCard < Card .
 
     *** --- LOAD NUMBERS --- ***
     protecting RAT . 
+    protecting STRING .
+
+
+    *** todo: expiration date, pridat card do terminalu, bank? 
 
 
     *** --- DEFINE PIN, BALANCE, CARDS, CONSTANTS, VARS --- ***
@@ -14,7 +18,11 @@ fmod TERMINAL is
     op balance : Rat -> Balance .
     op chipCard : Pin Balance -> ChipCard .
     op contactlessCard : Balance -> ContactlessCard .
+    op date : Rat Rat -> Date .
 
+
+    
+    
     op terminal : State -> Terminal .
 
     op idle : -> State .
@@ -22,7 +30,11 @@ fmod TERMINAL is
     op accept : -> State .
     op pinReject : -> State .
     op lowBalanceReject : -> State .
-    op reject : -> State .
+    op terminalNotReadyReject : -> State .
+
+    op name : String -> Name .
+    op account : Card Name -> Account .
+
 
     var BB : Bool .
     var P1 P2 : Rat .
@@ -31,27 +43,26 @@ fmod TERMINAL is
     var C1 : Card .
     var T : Terminal .
     var S : State .
+    var N : Name .
+    var month1 month2 year1 year2 : Rat .
 
-    *** rew in TERMINAL : payByContactlessCard ( contactlessCard ( balance ( 3000 ) ), terminal ( idle ), 3001 ) .
-
-
+    
     *** --- IMPLEMENTATION OF TERMINAL FUNCTIONS --- ***
 
 
     op payByContactlessCard : ContactlessCard Terminal Rat -> Terminal .
-    ceq payByContactlessCard (C1 , terminal ( S ), P1 ) = terminal (reject) if S =/= idle .
+    ceq payByContactlessCard (C1 , terminal ( S ), P1 ) = terminal (terminalNotReadyReject) if S =/= idle .
     ceq payByContactlessCard (C1 , terminal ( S ), P1 ) = terminalValidation ( validateCard ( C1, pin (0) ), terminal (waiting), C1, P1 ) if S == idle .
 
 
     op payChipCard : ChipCard Terminal Rat Rat -> Terminal .
-    ceq payChipCard (C1 , terminal ( S ), P1, P2 ) = terminal (reject) if S =/= idle .
+    ceq payChipCard (C1 , terminal ( S ), P1, P2 ) = terminal (terminalNotReadyReject) if S =/= idle .
     ceq payChipCard (C1 , terminal ( S ), P1, P2 ) = terminalValidation ( validateCard ( C1, readPin(P2) ), terminal (waiting), C1, P1 ) if S == idle .
 
 
     op terminalValidation : Bool Terminal Card Rat -> Terminal .
     ceq terminalValidation ( BB, T, C1, P1 ) = terminal (pinReject) if BB =/= true .
     ceq terminalValidation ( BB, T, C1, P1 ) = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting), C1, P1 ) if BB == true .
-
 
 
     op terminalBalanceCheck : Bool Terminal Card Rat -> Terminal .
@@ -66,6 +77,16 @@ fmod TERMINAL is
 
 
     *** --- IMPLEMENTATION OF HELPER FUNCTIONS (Pin operations, Card operations) --- ***
+
+    *** getAccountName ( account ( contactlessCard ( balance ( 3000 ) ) , name("VIT") ) ) .
+    op getAccountName : Account -> Name .
+    eq getAccountName (account ( C1, N )) = N .
+
+
+    *** rew in TERMINAL : getAccountBalance ( account ( contactlessCard ( balance ( 3000 ) ) , name("VIT") ) ) .
+    op getAccountBalance : Account -> Balance .
+    eq getAccountBalance (account ( C1, N )) = balance ( getBalance(C1) ) .
+
 
     op readPin : Rat -> Pin .
     eq readPin ( P1 ) = pin ( P1 ) .
@@ -92,5 +113,12 @@ fmod TERMINAL is
 
     op updateCardBalance : Card Rat -> Card . 
     eq updateCardBalance (C1 , P1 ) = subtractAmount (C1 , P1) .
+
+   
+    op checkExpirationDate : Date Date -> Bool .
+    ceq checkExpirationDate ( date (month1, year1), date (month2, year2 ) ) = true if year1 < year2 .
+    ceq checkExpirationDate ( date (month1, year1), date (month2, year2 ) ) = true if year1 == year2 /\ month1 <= month2 .
+    eq checkExpirationDate ( date (month1, year1), date (month2, year2 ) ) = false .
+    
 
 endfm

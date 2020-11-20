@@ -1,0 +1,17 @@
+load rterminal.maude .
+
+fmod TEST is
+    ex TERMINAL .
+    *** --- CREATE DUMMY CONSTANTS : --- ***
+    op dummyContactlessCard : -> ContactlessCard .
+    eq dummyContactlessCard = contactlessCard( balance ( 3000) ) .
+
+    op dummyChipCard : -> ChipCard .
+    eq dummyChipCard = chipCard ( pin ( 1234 ) , balance ( 3000 ) ) .
+    
+    op dummyAccount : -> Account .
+    eq dummyAccount = account ( dummyContactlessCard , name("VIT") ) .
+
+    op dummyIddleTerminal : -> Terminal . 
+    eq dummyIddleTerminal = terminal (idle) .
+endfm
