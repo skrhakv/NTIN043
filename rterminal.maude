@@ -8,17 +8,39 @@ fmod TERMINAL is
     op chipCard : Pin Balance -> ChipCard .
     op contactlessCard : Balance -> ContactlessCard .
 
-    op terminal : Card TerminalSession State -> Terminal .
-    op terminalSession : Card Price -> TerminalSession .
+    op terminal : State -> Terminal .
+
+    op idle : -> State .
+    op waiting : -> State .
+    op accept : -> State .
+    op reject : -> State .
+
+    op payByContactlessCard : Card Terminal -> Terminal .
+    eq 
+    op payChipCard : Card Terminal Pin -> Terminal .
+
+    *** op terminalSession : Card Price -> TerminalSession .
     
     *** vezmu terminal a neco a udelam z toho funkci treba: op updateAccount : Card Terminal -> Terminal 
+
+
+
+    var BB : Bool .
+
+    op abc : Bool -> Rat .
+    ceq abc ( BB ) = 1 if BB .
+    ceq abc ( BB ) = 2 if BB =/= true .
 
     var P1 P2 : Rat .
     var B : Balance .
     var P : Pin .
     var C1 : Card .
 
-    *** rew in TERMINAL : validateCard ( chipCard ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 12344 ) ) 
+
+    op readPin : Rat -> Pin .
+    eq readPin ( P1 ) = pin ( P1 ) .
+
+    *** rew in TERMINAL : validateCard ( chipCard ( pin ( 1234 ) , balance ( 3000 ) ) , pin( 1344 ) ) 
     op validateCard : Card Pin -> Bool .
     eq validateCard ( chipCard ( pin( P1 ) , B ) , pin ( P2 ) ) = P1 == P2 .
     eq validateCard ( contactlessCard ( B ), pin ( P1 ) ) = true . *** substitute P1 with zero?
@@ -28,10 +50,19 @@ fmod TERMINAL is
     eq getBalance (contactlessCard ( balance ( P1 ) ) ) = P1 .
     eq getBalance (chipCard ( P , balance ( P1 ) ) ) = P1 .
 
+    op subtractAmount : Card Rat -> Card .
+    eq subtractAmount (contactlessCard ( balance ( P1 ) ) , P2 ) = contactlessCard ( balance ( P1 - P2 ) )  .
+    eq subtractAmount (chipCard ( P , balance (P1) ) , P2 ) = chipCard ( P , balance ( P1 - P2 ) )  .
 
     *** checkCardBalance ( chipCard ( pin ( 1234 ) , balance ( 1000 ) ), 100 ) .
     op checkCardBalance : Card Rat -> Bool . 
     eq checkCardBalance (C1, P1) = getBalance( C1 ) > P1 . 
+
+    op updateCardBalance : Card Rat -> Card . 
+    eq updateCardBalance (C1 , P1 ) = subtractAmount (C1 , P1) .
+
+
+    
     
 
 
