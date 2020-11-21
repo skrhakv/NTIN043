@@ -1,17 +1,40 @@
-load rterminal.maude .
+load bank.maude .
 
 fmod TEST is
-    ex TERMINAL .
+    ex BANK .
     *** --- CREATE DUMMY CONSTANTS : --- ***
     op dummyContactlessCard : -> ContactlessCard .
-    eq dummyContactlessCard = contactlessCard( balance ( 3000) ) .
+    eq dummyContactlessCard = contactlessCard( balance ( 3000) , date (9, 2021)) .
 
     op dummyChipCard : -> ChipCard .
-    eq dummyChipCard = chipCard ( pin ( 1234 ) , balance ( 3000 ) ) .
+    eq dummyChipCard = chipCard ( pin ( 1234 ) , balance ( 3000 ), date ( 9, 2021) ) .
     
-    op dummyAccount : -> Account .
-    eq dummyAccount = account ( dummyContactlessCard , name("VIT") ) .
+    op dummyExpiredChipCard : -> ChipCard .
+    eq dummyExpiredChipCard = chipCard ( pin ( 1234 ) , balance ( 3000 ), date ( 9, 2019) ) .
+    
+    op todayDate : -> Date . 
+    eq todayDate = date ( 11, 2020 ).
 
-    op dummyIddleTerminal : -> Terminal . 
-    eq dummyIddleTerminal = terminal (idle) .
+    op dummyAccount : -> Account .
+    eq dummyAccount = account ( dummyContactlessCard , accountId(1) ) .
+
+    *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 134, todayDate ) .
+    *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 1234, todayDate ) .
+    op dummyChipCardIdleTerminal : -> Terminal . 
+    eq dummyChipCardIdleTerminal = terminal (idle, dummyChipCard) .
+
+    *** payChipCard ( dummyExpiredChipCardIdleTerminal, 100, 1234, todayDate ) .
+    op dummyExpiredChipCardIdleTerminal : -> Terminal . 
+    eq dummyExpiredChipCardIdleTerminal = terminal (idle, dummyExpiredChipCard) .
+
+
+    *** rew in TEST : payByContactlessCard(dummyContactlessCardIdleTerminal, 100, todayDate) .
+    *** rew in TEST : payByContactlessCard(dummyContactlessCardIdleTerminal, 10000, todayDate) .
+    op dummyContactlessCardIdleTerminal : -> Terminal . 
+    eq dummyContactlessCardIdleTerminal = terminal (idle, dummyContactlessCard) .
+
+    op dummyAccounts : -> Accounts .
+    eq dummyAccounts = accounts(account(dummyChipCard, accountId(1)), accounts(account (dummyContactlessCard, accountId(2)), accounts) ). 
+    
+
 endfm

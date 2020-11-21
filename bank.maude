@@ -1,0 +1,71 @@
+load rterminal.maude .
+
+fmod BANK is
+
+    ex TERMINAL .
+
+    sorts Bank Account Accounts AccountID AccountInfo .
+
+    op account : Card AccountID -> Account .
+    op accountId : Rat -> AccountID .
+    op accounts : Account Accounts -> Accounts .
+    op accounts : -> Accounts .
+    op accountInfo : AccountID Balance Date -> AccountInfo .
+    op nilAccount : -> Account . 
+    op bank : Accounts -> Bank .
+
+    var A : Account .
+    var AS : Accounts .
+    var ID1 ID2 : AccountID .
+    var C1 : Card .
+    var N M : Rat .
+    
+    
+    op getAccountID : Account -> AccountID .
+    eq getAccountID (account ( C1, ID1 )) = ID1 .
+
+
+    op AccountIDequality : AccountID AccountID -> Bool .
+    eq AccountIDequality (accountId ( N ) , accountId ( M ) ) = N == M .
+
+    op getAccountCard : Account -> Card .
+    eq getAccountCard(account (C1, ID1)) = C1 .
+    *** getAccount ( accounts( account (dummyChipCard, accountId(1)), accounts), accountId(2) ) .
+    ***getAccount ( accounts( account (dummyChipCard, accountId(1)), accounts), accountId(1) ) .
+    op getAccount : Accounts AccountID -> Account .
+    ceq getAccount (accounts(A, AS ), ID1) = A if AccountIDequality(getAccountID(A), ID1) .
+    ceq getAccount (accounts(A, AS ), ID1) = getAccount(AS, ID1) if not AccountIDequality(getAccountID(A), ID1) .
+    eq getAccount (accounts, ID1) = nilAccount .
+
+    *** getAccountInfo(dummyAccount) .
+    op getAccountInfo : Account -> AccountInfo .
+    eq getAccountInfo (account ( C1, ID1) ) = accountInfo ( ID1, balance ( getBalance(C1)), getDate(C1 ) ) .
+
+    op addAccountAmount : Account Rat -> Account .
+    eq addAccountAmount ( account (C1, ID1), N ) = account (addAmount(C1, N), ID1).
+
+    op subtractAccountAmount : Account Rat -> Account .
+    eq subtractAccountAmount ( account (C1, ID1), N ) = account (addAmount(C1, N), ID1).
+
+    *** addAccountsID(accounts(account(dummyChipCard, accountId(1)), accounts), accountId(1), 200) .
+    op addAccountsID : Accounts AccountID Rat -> Accounts .
+    ceq addAccountsID ( AS, ID1, M ) = accounts( account (addAmount(getAccountCard(getAccount(AS,ID1)), M), ID1) , removeAccount(AS,ID1)) if getAccount(AS, ID1) =/= nilAccount .
+    eq addAccountsID ( AS, ID1, M ) = AS .
+
+    *** subtractAccountsID(accounts(account(dummyChipCard, accountId(1)), accounts), accountId(1), 200) .
+    op subtractAccountsID : Accounts AccountID Rat -> Accounts .
+    ceq subtractAccountsID ( AS, ID1, M ) = accounts( account (subtractAmount(getAccountCard(getAccount(AS,ID1)), M), ID1) , removeAccount(AS,ID1)) if getAccount(AS, ID1) =/= nilAccount .
+    eq subtractAccountsID ( AS, ID1, M ) = AS .
+
+
+    op removeAccount : Accounts AccountID -> Accounts .
+    ceq removeAccount( accounts(account(C1, ID1), AS), ID2) = AS if AccountIDequality(ID1, ID2) .
+    eq removeAccount ( accounts(A, AS), ID1) = accounts(A, removeAccount(AS, ID1)) .
+    eq removeAccount(  accounts, ID1 ) = accounts .
+
+    *** sendFromTo(dummyAccounts, accountId(1), accountId(2), 100) .
+    op sendFromTo : Accounts AccountID AccountID Rat -> Accounts .
+    ceq sendFromTo (AS, ID1, ID2, M) = accounts ( account (subtractAmount(getAccountCard(getAccount(AS,ID1)), M), ID1) , removeAccount(accounts ( account (addAmount(getAccountCard(getAccount(AS,ID2)), M), ID2), removeAccount(AS, ID2) ), ID1 ) ) if getAccount(AS, ID1) =/= nilAccount /\ getAccount(AS, ID2) =/= nilAccount .
+    eq subtractAccountsID ( AS, ID1, M ) = AS .
+
+endfm
