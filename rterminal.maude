@@ -23,7 +23,7 @@ fmod TERMINAL is
 
     
     
-    op terminal : State Card -> Terminal .
+    op terminal : State -> Terminal .
 
     op idle : -> State .
     op waiting : -> State .
@@ -32,54 +32,58 @@ fmod TERMINAL is
     op lowBalanceReject : -> State .
     op terminalNotReadyReject : -> State .
     op expirationDateReject : -> State .
+    op wrongCardTypeReject : -> State .
 
     var BB : Bool .
     var P1 P2 : Rat .
     var B : Balance .
     var P : Pin .
     var C1 : Card .
+    var C2 : ContactlessCard .
+    var C3 : ChipCard .
     var T : Terminal .
-    var S : State .
+    var S S1 S2 : State .
     var month1 month2 year1 year2 : Rat .
     var D D1 D2 : Date .
 
     
     *** --- IMPLEMENTATION OF TERMINAL FUNCTIONS --- ***
 
+    *** payContactlessCard( dummyContactlessCard, dummyIdleTerminal, 10000 ,  todayDate ) .
+    op payContactlessCard : Card Terminal Rat Date -> Terminal .
+    ceq payContactlessCard (C2 , terminal ( S ), P1, D1 ) = terminal (terminalNotReadyReject) if S =/= idle .
+    ceq payContactlessCard (C2 , terminal ( S ), P1, D1) = terminalValidation ( validateCard ( C2, pin (0) ), terminal (waiting), C2, P1,D1 ) if S == idle .
+    eq payContactlessCard (C3 , T, P1, D1 ) = terminal (wrongCardTypeReject) .
+    *** payChipCard( dummyChipCard, dummyIdleTerminal, 100, 12334, todayDate) .
+    op payChipCard : ChipCard Terminal Rat Rat Date -> Terminal .
+    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) = terminal (terminalNotReadyReject) if S =/= idle .
+    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) = terminalValidation ( validateCard ( C3, readPin(P2) ), terminal (waiting), C3, P1,D1 ) if S == idle .
+    eq payChipCard (C2, T, P1, P2, D1) = terminal (wrongCardTypeReject) .
 
-    op payByContactlessCard : Terminal Rat Date -> Terminal .
-    ceq payByContactlessCard ( terminal ( S , C1 ), P1, D1 ) = terminal (terminalNotReadyReject, C1) if S =/= idle .
-    ceq payByContactlessCard ( terminal ( S , C1 ), P1, D1  ) = terminalPinValidation ( validateCard ( C1, pin (0) ), terminal (waiting, C1), P1, D1  ) if S == idle .
+    op terminalValidation : Bool Terminal Card Rat Date -> Terminal .
+    ceq terminalValidation ( BB, T, C1, P1,D1 ) = terminal (pinReject) if BB =/= true .
+    ceq terminalValidation ( BB, T, C1, P1,D1 ) = terminalDateValidation( checkExpirationDate ( C1, D1), terminal(waiting), C1, P1 ) if BB == true .
 
+	op terminalDateValidation : Bool Terminal Card Rat -> Terminal .
+    ceq terminalDateValidation ( BB, T, C1 , P1 ) = terminal (expirationDateReject) if BB =/= true .
+    ceq terminalDateValidation ( BB, T, C1 , P1 ) = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting), C1, P1 ) if BB == true .
 
-    op payChipCard : Terminal Rat Rat Date -> Terminal .
-    ceq payChipCard (terminal ( S , C1 ), P1, P2, D1  ) = terminal (terminalNotReadyReject, C1) if S =/= idle .
-    ceq payChipCard (terminal ( S , C1 ), P1, P2, D1  ) = terminalPinValidation ( validateCard ( C1, readPin(P2) ), terminal (waiting, C1), P1, D1  ) if S == idle .
-
-
-    op terminalPinValidation : Bool Terminal Rat Date -> Terminal .
-    ceq terminalPinValidation ( BB, terminal ( S , C1 ), P1, D1  ) = terminal (pinReject, C1) if BB =/= true .
-    ceq terminalPinValidation ( BB, terminal ( S , C1 ), P1, D1 ) = terminalDateValidation( checkExpirationDate ( C1, D1 ) , terminal(waiting, C1), P1 ) if BB == true .
-
-
-    op terminalDateValidation : Bool Terminal Rat -> Terminal .
-    ceq terminalDateValidation ( BB, terminal ( S , C1 ), P1 ) = terminal (expirationDateReject, C1) if BB =/= true .
-    ceq terminalDateValidation ( BB, terminal ( S , C1 ), P1 ) = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting, C1), P1 ) if BB == true .
-
-
-    op terminalBalanceCheck : Bool Terminal Rat -> Terminal .
-    ceq terminalBalanceCheck ( BB, terminal ( S , C1 ), P1 ) = terminal (lowBalanceReject, C1) if BB =/= true .
-    ceq terminalBalanceCheck ( BB, terminal ( S , C1 ), P1 ) = terminalBalanceUpdate(terminal ( S , updateCardBalance( C1, P1 ) ) ) if BB == true .
+	
+    op terminalBalanceCheck : Bool Terminal Card Rat -> Terminal .
+    ceq terminalBalanceCheck ( BB, T , C1, P1 ) = terminal (lowBalanceReject) if BB =/= true .
+    ceq terminalBalanceCheck ( BB, T, C1, P1 ) = terminalBalanceUpdate(T, updateCardBalance( C1, P1)) if BB == true .
 
     
-    op terminalBalanceUpdate : Terminal -> Terminal .
-    eq terminalBalanceUpdate (terminal ( S , C1 )) = terminal ( accept, C1 ) .
+    op terminalBalanceUpdate : Terminal Card -> Terminal .
+    eq terminalBalanceUpdate (T, C1) = terminal ( accept ) .
     
 
 
 
     *** --- IMPLEMENTATION OF HELPER FUNCTIONS (Pin operations, Card operations) --- ***
-
+    
+    op stateEquality : Terminal Terminal -> Bool .
+    eq stateEquality (terminal (S1), terminal (S2)) = S1 == S2 .
 
     op readPin : Rat -> Pin .
     eq readPin ( P1 ) = pin ( P1 ) .

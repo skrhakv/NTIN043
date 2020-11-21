@@ -18,7 +18,9 @@ fmod BANK is
     var AS : Accounts .
     var ID1 ID2 : AccountID .
     var C1 : Card .
-    var N M : Rat .
+    var N M PIN1 : Rat .
+    var D : Date .
+    
     
     
     op getAccountID : Account -> AccountID .
@@ -67,5 +69,12 @@ fmod BANK is
     op sendFromTo : Accounts AccountID AccountID Rat -> Accounts .
     ceq sendFromTo (AS, ID1, ID2, M) = accounts ( account (subtractAmount(getAccountCard(getAccount(AS,ID1)), M), ID1) , removeAccount(accounts ( account (addAmount(getAccountCard(getAccount(AS,ID2)), M), ID2), removeAccount(AS, ID2) ), ID1 ) ) if getAccount(AS, ID1) =/= nilAccount /\ getAccount(AS, ID2) =/= nilAccount .
     eq subtractAccountsID ( AS, ID1, M ) = AS .
+
+    op contactlessPayment : Accounts AccountID Rat Date -> Accounts .
+    ceq contactlessPayment (AS, ID1, M, D) = subtractAccountsID(AS, ID1, M) if stateEquality ( payContactlessCard(getAccountCard(getAccount(AS, ID1)), terminal (idle), M, D ), terminal (accept) ) .
+
+    op chipPayment : Accounts AccountID Rat Rat Date -> Accounts .
+    ceq chipPayment (AS, ID1, M, PIN1, D) = subtractAccountsID(AS, ID1, M) if stateEquality ( payChipCard(getAccountCard(getAccount(AS, ID1)), terminal (idle), M,PIN1, D ), terminal (accept) ) .
+
 
 endfm

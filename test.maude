@@ -2,6 +2,7 @@ load bank.maude .
 
 fmod TEST is
     ex BANK .
+    
     *** --- CREATE DUMMY CONSTANTS : --- ***
     op dummyContactlessCard : -> ContactlessCard .
     eq dummyContactlessCard = contactlessCard( balance ( 3000) , date (9, 2021)) .
@@ -20,18 +21,8 @@ fmod TEST is
 
     *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 134, todayDate ) .
     *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 1234, todayDate ) .
-    op dummyChipCardIdleTerminal : -> Terminal . 
-    eq dummyChipCardIdleTerminal = terminal (idle, dummyChipCard) .
-
-    *** payChipCard ( dummyExpiredChipCardIdleTerminal, 100, 1234, todayDate ) .
-    op dummyExpiredChipCardIdleTerminal : -> Terminal . 
-    eq dummyExpiredChipCardIdleTerminal = terminal (idle, dummyExpiredChipCard) .
-
-
-    *** rew in TEST : payByContactlessCard(dummyContactlessCardIdleTerminal, 100, todayDate) .
-    *** rew in TEST : payByContactlessCard(dummyContactlessCardIdleTerminal, 10000, todayDate) .
-    op dummyContactlessCardIdleTerminal : -> Terminal . 
-    eq dummyContactlessCardIdleTerminal = terminal (idle, dummyContactlessCard) .
+    op dummyIdleTerminal : -> Terminal . 
+    eq dummyIdleTerminal = terminal (idle) .
 
     op dummyAccounts : -> Accounts .
     eq dummyAccounts = accounts(account(dummyChipCard, accountId(1)), accounts(account (dummyContactlessCard, accountId(2)), accounts) ). 
