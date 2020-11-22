@@ -19,13 +19,50 @@ fmod TEST is
     op dummyAccount : -> Account .
     eq dummyAccount = account ( dummyContactlessCard , accountId(1) ) .
 
-    *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 134, todayDate ) .
-    *** rew in TEST : payChipCard ( dummyChipCardIdleTerminal, 100, 1234, todayDate ) .
     op dummyIdleTerminal : -> Terminal . 
     eq dummyIdleTerminal = terminal (idle) .
 
     op dummyAccounts : -> Accounts .
     eq dummyAccounts = accounts(account(dummyChipCard, accountId(1)), accounts(account (dummyContactlessCard, accountId(2)), accounts) ). 
     
+    op dummyBlockedAccounts : -> Accounts .
+    eq dummyBlockedAccounts = accounts ( account (dummyContactlessCard, accountId(2)) , accounts ) . 
+
+    op dummyBank : -> Bank .
+    eq dummyBank = bank ( dummyAccounts, dummyBlockedAccounts) .
+
+
+    *** --- CREATE DUMMY FUNCTION CALLS : --- ***
+
+    op dummyChipPayment : -> Bank .
+    eq dummyChipPayment = chipPayment ( dummyBank, accountId(1), 100, 1234, todayDate) .
+
+    op dummyContactlessPaymentReject : -> Bank .
+    eq dummyContactlessPaymentReject = contactlessPayment ( dummyBank, accountId(2), 100, todayDate) .
+
+    op dummyContactlessPayment : -> Bank .
+    eq dummyContactlessPayment = contactlessPayment ( bank (dummyAccounts, accounts), accountId(2), 100, todayDate) .
+
+    op dummyMoneyTransfer : -> Bank .
+    eq dummyMoneyTransfer = moneyTransfer (bank (dummyAccounts, accounts), accountId(1), accountId(2), 100) .
+
+    op dummyMoneyTransferReject : -> Bank .
+    eq dummyMoneyTransferReject = moneyTransfer( dummyBank, accountId(1), accountId(2), 100) .
+
+    op dummyGetInfo : -> AccountInfo .
+    eq dummyGetInfo = getAccountInfo (dummyAccount) .
+
+    op dummyExpirationTerminalReject : -> Terminal .
+    eq dummyExpirationTerminalReject = payChipCard (dummyExpiredChipCard , dummyIdleTerminal, 100, 1234, todayDate) .
+
+    op dummyWrongPinTerminalReject : -> Terminal .
+    eq dummyWrongPinTerminalReject = payChipCard (dummyChipCard , dummyIdleTerminal, 100, 123, todayDate) .
+
+    op dummyLowBalanceTerminalReject : -> Terminal .
+    eq dummyLowBalanceTerminalReject = payChipCard (dummyChipCard , dummyIdleTerminal, 10000, 1234, todayDate) .
+
+    op dummyWrongCardTypeTerminalReject : -> Terminal .
+    eq dummyWrongCardTypeTerminalReject = payChipCard (dummyContactlessCard , dummyIdleTerminal, 10000, 1234, todayDate) .
+
 
 endfm

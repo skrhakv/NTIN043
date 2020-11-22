@@ -9,9 +9,6 @@ fmod TERMINAL is
     protecting STRING .
 
 
-    *** todo: expiration date, pridat card do terminalu, bank?  update expiration date
-
-
     *** --- DEFINE PIN, BALANCE, CARDS, CONSTANTS, VARS --- ***
 
     op pin : Rat -> Pin .
@@ -48,25 +45,34 @@ fmod TERMINAL is
 
     
     *** --- IMPLEMENTATION OF TERMINAL FUNCTIONS --- ***
-
-    *** payContactlessCard( dummyContactlessCard, dummyIdleTerminal, 10000 ,  todayDate ) .
     op payContactlessCard : Card Terminal Rat Date -> Terminal .
-    ceq payContactlessCard (C2 , terminal ( S ), P1, D1 ) = terminal (terminalNotReadyReject) if S =/= idle .
-    ceq payContactlessCard (C2 , terminal ( S ), P1, D1) = terminalValidation ( validateCard ( C2, pin (0) ), terminal (waiting), C2, P1,D1 ) if S == idle .
-    eq payContactlessCard (C3 , T, P1, D1 ) = terminal (wrongCardTypeReject) .
-    *** payChipCard( dummyChipCard, dummyIdleTerminal, 100, 12334, todayDate) .
+    ceq payContactlessCard (C2 , terminal ( S ), P1, D1 ) 
+        = terminal (terminalNotReadyReject) if S =/= idle .
+    ceq payContactlessCard (C2 , terminal ( S ), P1, D1) 
+        = terminalValidation ( validateCard ( C2, pin (0) ), terminal (waiting), C2, P1,D1 ) if S == idle .
+    eq payContactlessCard (C3 , T, P1, D1 ) 
+        = terminal (wrongCardTypeReject) .
+
+
     op payChipCard : ChipCard Terminal Rat Rat Date -> Terminal .
-    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) = terminal (terminalNotReadyReject) if S =/= idle .
-    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) = terminalValidation ( validateCard ( C3, readPin(P2) ), terminal (waiting), C3, P1,D1 ) if S == idle .
-    eq payChipCard (C2, T, P1, P2, D1) = terminal (wrongCardTypeReject) .
+    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) 
+        = terminal (terminalNotReadyReject) if S =/= idle .
+    ceq payChipCard (C3 , terminal ( S ), P1, P2,D1 ) 
+        = terminalValidation ( validateCard ( C3, readPin(P2) ), terminal (waiting), C3, P1,D1 ) if S == idle .
+    eq payChipCard (C2, T, P1, P2, D1) 
+        = terminal (wrongCardTypeReject) .
 
     op terminalValidation : Bool Terminal Card Rat Date -> Terminal .
-    ceq terminalValidation ( BB, T, C1, P1,D1 ) = terminal (pinReject) if BB =/= true .
-    ceq terminalValidation ( BB, T, C1, P1,D1 ) = terminalDateValidation( checkExpirationDate ( C1, D1), terminal(waiting), C1, P1 ) if BB == true .
+    ceq terminalValidation ( BB, T, C1, P1,D1 ) 
+        = terminal (pinReject) if BB =/= true .
+    ceq terminalValidation ( BB, T, C1, P1,D1 ) 
+        = terminalDateValidation( checkExpirationDate ( C1, D1), terminal(waiting), C1, P1 ) if BB == true .
 
 	op terminalDateValidation : Bool Terminal Card Rat -> Terminal .
-    ceq terminalDateValidation ( BB, T, C1 , P1 ) = terminal (expirationDateReject) if BB =/= true .
-    ceq terminalDateValidation ( BB, T, C1 , P1 ) = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting), C1, P1 ) if BB == true .
+    ceq terminalDateValidation ( BB, T, C1 , P1 ) 
+        = terminal (expirationDateReject) if BB =/= true .
+    ceq terminalDateValidation ( BB, T, C1 , P1 ) 
+        = terminalBalanceCheck( checkCardBalance ( C1, P1), terminal(waiting), C1, P1 ) if BB == true .
 
 	
     op terminalBalanceCheck : Bool Terminal Card Rat -> Terminal .
@@ -109,13 +115,17 @@ fmod TERMINAL is
 
 
     op subtractAmount : Card Rat -> Card .
-    eq subtractAmount (contactlessCard ( balance ( P1 ), date( month1, year1) ) , P2 ) = contactlessCard ( balance ( P1 - P2 ) , date( month1, year1) )  .
-    eq subtractAmount (chipCard ( P , balance (P1), date( month1, year1) ) , P2 ) = chipCard ( P , balance ( P1 - P2 ), date( month1, year1) )  .
+    eq subtractAmount (contactlessCard ( balance ( P1 ), date( month1, year1) ) , P2 ) 
+        = contactlessCard ( balance ( P1 - P2 ) , date( month1, year1) )  .
+    eq subtractAmount (chipCard ( P , balance (P1), date( month1, year1) ) , P2 ) 
+        = chipCard ( P , balance ( P1 - P2 ), date( month1, year1) )  .
 
 
     op addAmount : Card Rat -> Card .
-    eq addAmount (contactlessCard ( balance ( P1 ), date( month1, year1) ) , P2 ) = contactlessCard ( balance ( P1 + P2 ) , date( month1, year1) )  .
-    eq addAmount (chipCard ( P , balance (P1), date( month1, year1) ) , P2 ) = chipCard ( P , balance ( P1 + P2 ), date( month1, year1) )  .
+    eq addAmount (contactlessCard ( balance ( P1 ), date( month1, year1) ) , P2 ) 
+        = contactlessCard ( balance ( P1 + P2 ) , date( month1, year1) )  .
+    eq addAmount (chipCard ( P , balance (P1), date( month1, year1) ) , P2 ) 
+        = chipCard ( P , balance ( P1 + P2 ), date( month1, year1) )  .
 
 
     op checkCardBalance : Card Rat -> Bool . 
@@ -132,6 +142,7 @@ fmod TERMINAL is
     eq checkDate ( date (month1, year1), date (month2, year2 ) ) = false .
 
     op updateExpirationDate : Card -> Card .
-    eq updateExpirationDate (chipCard ( P , B , date (month1, year1))) = chipCard (P, B, date(month1 , year1 + 5)) .
+    eq updateExpirationDate (chipCard ( P , B , date (month1, year1))) = 
+        chipCard (P, B, date(month1 , year1 + 5)) .
     
 endfm
